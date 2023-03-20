@@ -6,6 +6,10 @@ module Crypto_JS = {
   @module("crypto-js") external sha256: string => string = "SHA256"
 }
 
+module Body_Parser = {
+  @module("body-parser") external json: 'a => 'b = "json"
+}
+
 module Block = {
   /// To keep things as simple as possible we include only the most necessary:
   /// index, timestamp, data, hash and previous hash.
@@ -74,10 +78,6 @@ module Block = {
   }
 }
 
-module Http_Server = {
-
-}
-
 type t = array<Block.t>
 
 /// A in-memory Javascript array is used to store the blockchain.
@@ -142,5 +142,56 @@ let replace = new_chain => {
     // broadcast(response_latest_msg())
   } else {
     Js.log("Received blockchain invalid")
+  }
+}
+
+let add = new_block => {
+  if Block.valid(new_block, get_latest()) {
+    Array.push(main_chain.contents, new_block)
+  }
+}
+
+/// The user must be able to control the node in some way. This is done by setting up a HTTP server.
+module Http_Server = {
+  type socket = {
+    remote_addr: string,
+    remote_port: string,
+  }
+
+  let sockets: array<socket> = []
+
+  /// The user is able to interact with the node in the following ways:
+  ///   - List all blocks
+  ///   - Create a new block with a content given by the user
+  ///   - List or add peers
+  let init = () => {
+    let app = Express.express()
+    Express.use(app, Body_Parser.json)
+
+    Express.get(app, "/chain", (_, response) => {
+      Express.send(response, Js.Json.stringifyAny(main_chain)) |> ignore
+    })
+
+    Express.post(app, "/mine", (request, response) => {
+      let new_block = generate(Express.body(request))
+      add(new_block)
+      // broadcast(response_last_msg())
+      Js.log("Block added" ++ Option.getExn(Js.Json.stringifyAny(new_block)))
+      Express.send(response, ()) |> ignore
+    })
+
+    Express.get(app, "/peers", (_, response) => {
+      Express.send(
+        response,
+        Array.map(sockets, socket => {socket.remote_addr ++ ":" ++ socket.remote_port}),
+      ) |> ignore
+    })
+
+    Express.post(app, "/add_peer", (request, response) => {
+      /// connect([Express.body(request).peer])
+      Express.send(response, ()) |> ignore
+    })
+
+    // Express.listen(http_port)
   }
 }

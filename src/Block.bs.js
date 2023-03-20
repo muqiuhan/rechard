@@ -3,11 +3,15 @@
 
 var Int32 = require("rescript/lib/js/int32.js");
 var $$String = require("rescript/lib/js/string.js");
+var Express = require("express").default;
 var CryptoJs = require("crypto-js");
 var Belt_Array = require("rescript/lib/js/belt_Array.js");
 var Belt_Option = require("rescript/lib/js/belt_Option.js");
+var BodyParser = require("body-parser");
 
 var Crypto_JS = {};
+
+var Body_Parser = {};
 
 function create(index, previous_hash, timestamp, data, hash) {
   return {
@@ -73,8 +77,6 @@ var Block = {
   valid: valid
 };
 
-var Http_Server = {};
-
 var main_chain = {
   contents: [genesis]
 };
@@ -122,13 +124,54 @@ function replace(new_chain) {
   }
 }
 
+function add(new_block) {
+  if (valid(new_block, get_latest(undefined))) {
+    main_chain.contents.push(new_block);
+    return ;
+  }
+  
+}
+
+var sockets = [];
+
+function init(param) {
+  var app = Express();
+  app.use(function (prim) {
+        return BodyParser.json(prim);
+      });
+  app.get("/chain", (function (param, response) {
+          response.send(JSON.stringify(main_chain));
+        }));
+  app.post("/mine", (function (request, response) {
+          var new_block = generate(request.body);
+          add(new_block);
+          console.log("Block added" + Belt_Option.getExn(JSON.stringify(new_block)));
+          response.send(undefined);
+        }));
+  app.get("/peers", (function (param, response) {
+          response.send(Belt_Array.map(sockets, (function (socket) {
+                      return socket.remote_addr + ":" + socket.remote_port;
+                    })));
+        }));
+  app.post("/add_peer", (function (request, response) {
+          response.send(undefined);
+        }));
+}
+
+var Http_Server = {
+  sockets: sockets,
+  init: init
+};
+
 exports.Crypto_JS = Crypto_JS;
+exports.Body_Parser = Body_Parser;
 exports.Block = Block;
-exports.Http_Server = Http_Server;
 exports.main_chain = main_chain;
 exports.get_latest = get_latest;
 exports.generate = generate;
 exports.valid_gensis = valid_gensis;
 exports.valid = valid$1;
 exports.replace = replace;
-/* crypto-js Not a pure module */
+exports.add = add;
+exports.Http_Server = Http_Server;
+/* express Not a pure module */
