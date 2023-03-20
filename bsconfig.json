@@ -1,5 +1,5 @@
 {
-  "name": "rescript-project-template",
+  "name": "rechard",
   "sources": {
     "dir": "src",
     "subdirs": true
