@@ -1,1 +1,1 @@
-Js.log("Hello, World!")
+Js.Console.log(Block.generate("Muqiu Han"))
