@@ -1,15 +1,16 @@
 {
-  "name": "rescript-project-template",
+  "name": "rechard",
   "version": "0.0.1",
   "scripts": {
-    "res:build": "rescript",
-    "res:clean": "rescript clean",
-    "res:dev": "rescript build -w"
+    "build": "rescript",
+    "clean": "rescript clean",
+    "dev": "rescript build -w",
+    "start": "rescript && node src/Main.bs.js"
   },
   "keywords": [
-    "rescript"
+    "rescript", "blockchain"
   ],
-  "author": "",
+  "author": "Muqiu Han",
   "license": "MIT",
   "dependencies": {
     "crypto-js": "^4.1.1",
