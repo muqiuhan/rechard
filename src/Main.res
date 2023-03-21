@@ -1,1 +1,1 @@
-Js.Console.log(Block.generate("Muqiu Han"))
+/// Js.log(Block.generate("Muqiu Han"))
