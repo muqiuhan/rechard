@@ -11,21 +11,20 @@ let get_latest = () => {
   chain[Array.length(chain) - 1] |> Option.getExn
 }
 
-/// To generate a block we must know the hash of the previous block and create the rest of the required content
-/// (= index, hash, data and timestamp). Block data is something that is provided by the end-user.
+/// To generate a block we must know the hash of the previous block
+/// and create the rest of the required content.
 let generate = data => {
   let previous_block: Block.t = get_latest()
   let index = previous_block.index + 1
-  let timestamp =
-    Js.Date.make() |> Js.Date.getTime |> Int32.of_float |> (timestamp => timestamp / 1000)
+  let timestamp = Js.Date.make()->Js.Date.getTime->Int32.of_float->(timestamp => timestamp / 1000)
   let previous_hash = previous_block.hash
 
   Block.create(
-    index,
-    previous_hash,
-    timestamp,
-    data,
-    Block.calculate_hash(index, previous_block.hash, timestamp, data),
+    ~index,
+    ~previous_hash,
+    ~timestamp,
+    ~data,
+    ~hash=Block.calculate_hash(~index, ~previous_hash=previous_block.hash, ~timestamp, ~data),
   )
 }
 

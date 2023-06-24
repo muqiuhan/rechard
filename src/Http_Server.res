@@ -24,6 +24,7 @@
 
 open Belt
 open Third_Party
+open Express
 
 type socket = {
   remote_addr: string,
@@ -45,11 +46,11 @@ let connect = peers => {
 ///   - Create a new block with a content given by the user
 ///   - List or add peers
 let init = () => {
-  let app = Express.express()
+  let app = Express.expressCjs()
   Express.use(app, Body_Parser.json)
 
   Express.get(app, "/chain", (_, response) => {
-    Express.send(response, Js.Json.stringifyAny(Chain.main_chain)) |> ignore
+    Express.send(response, Js.Json.stringifyAny(Chain.main_chain))->ignore
   })
 
   Express.post(app, "/mine", (request, response) => {
@@ -57,21 +58,24 @@ let init = () => {
     Chain.add(new_block)
     // broadcast(response_last_msg())
     Js.log("Block added" ++ Option.getExn(Js.Json.stringifyAny(new_block)))
-    Express.send(response, ()) |> ignore
+    Express.send(response, ())->ignore
   })
 
   Express.get(app, "/peers", (_, response) => {
     Express.send(
       response,
       Array.map(sockets, socket => {socket.remote_addr ++ ":" ++ socket.remote_port}),
-    ) |> ignore
+    )->ignore
   })
 
   Express.post(app, "/add_peer", (_request, response) => {
     /// connect([Express.body(request).peer])
-    Express.send(response, ()) |> ignore
+    Express.send(response, ())->ignore
   })
 
-  Js.log("Listening http on port: " ++ Int.toString(http_port))
+  let _ = app->listenWithCallback(http_port, _ => {
+    Js.Console.log(`Listening on http://localhost:${http_port->Belt.Int.toString}`)
+  })
+
   Express.listen(app, http_port)
 }

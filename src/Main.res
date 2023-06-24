@@ -1,1 +1,1 @@
-/// Js.log(Block.generate("Muqiu Han"))
+let _ = Http_Server.init()
